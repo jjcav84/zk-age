@@ -1,8 +1,0 @@
-{
-  "current_year": "2026",
-  "threshold": "18",
-  "issuer_pubkey_hash": "12345",
-  "birth_year": "2000",
-  "issuer_signature": "152401025",
-  "signature_randomness": "12345"
-}
