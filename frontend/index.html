@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zk-age — Privacy-Preserving Age Verification</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #13131a;
+            --border: #2a2a3a;
+            --text: #e4e4e7;
+            --muted: #71717a;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --success: #22c55e;
+            --error: #ef4444;
+            --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 520px;
+            width: 100%;
+            padding: 24px;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 40px 32px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+        .input-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            border-color: var(--accent);
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            margin-top: 12px;
+        }
+        .btn-secondary:hover:not(:disabled) {
+            border-color: var(--accent);
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .badge-success {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+        }
+        .badge-error {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--error);
+        }
+        .badge-pending {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent);
+        }
+        .proof-details {
+            text-align: left;
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--bg);
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--muted);
+            font-family: 'SF Mono', monospace;
+            overflow-x: auto;
+        }
+        .proof-details summary {
+            cursor: pointer;
+            color: var(--accent);
+        }
+        .proof-details pre {
+            margin-top: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .privacy-note {
+            margin-top: 24px;
+            padding: 14px;
+            background: rgba(99, 102, 241, 0.08);
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--muted);
+            text-align: left;
+        }
+        .privacy-note strong {
+            color: var(--accent);
+        }
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .stat {
+            padding: 12px;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+        .stat-value {
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="logo">zk-age</div>
+            <div class="subtitle">Privacy-preserving age verification powered by zero-knowledge proofs</div>
+
+            <!-- Step 1: Issue -->
+            <div id="step-issue" class="step active">
+                <div class="input-group">
+                    <label>Enter your birth year</label>
+                    <input type="number" id="birthYear" placeholder="e.g., 2000" min="1900" max="2026">
+                </div>
+                <div class="input-group">
+                    <label>Select age threshold to prove</label>
+                    <select id="threshold">
+                        <option value="13">I'm at least 13</option>
+                        <option value="16">I'm at least 16</option>
+                        <option value="18" selected>I'm at least 18</option>
+                        <option value="21">I'm at least 21</option>
+                        <option value="25">I'm at least 25</option>
+                    </select>
+                </div>
+                <button class="btn" id="btn-issue" onclick="issueAndProve()">
+                    Prove my age
+                </button>
+                <div class="privacy-note">
+                    <strong>Your birth date never leaves your device.</strong>
+                    A zero-knowledge proof is generated locally that proves you're above the threshold
+                    without revealing your actual age. The proof is then verified on zkVerify.
+                </div>
+            </div>
+
+            <!-- Step 2: Processing -->
+            <div id="step-processing" class="step">
+                <div class="badge badge-pending">
+                    <span class="spinner"></span>
+                    <span id="processingText">Generating ZK proof...</span>
+                </div>
+            </div>
+
+            <!-- Step 3: Result -->
+            <div id="step-result" class="step">
+                <div id="resultBadge"></div>
+                <div id="resultDetails" style="margin-top: 16px; color: var(--muted); font-size: 14px;"></div>
+                <details class="proof-details" id="proofDetails">
+                    <summary>View proof details</summary>
+                    <pre id="proofJson"></pre>
+                </details>
+                <button class="btn btn-secondary" onclick="reset()">
+                    Verify again
+                </button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats" id="stats" style="display:none;">
+                <div class="stat">
+                    <div class="stat-value" id="statProofs">0</div>
+                    <div class="stat-label">Proofs Generated</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="statVerified">0</div>
+                    <div class="stat-label">Proofs Verified</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = window.location.origin.replace(/:\d+$/, ':3000');
+
+        function showStep(id) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        async function issueAndProve() {
+            const birthYear = parseInt(document.getElementById('birthYear').value);
+            const threshold = parseInt(document.getElementById('threshold').value);
+
+            if (!birthYear || birthYear < 1900 || birthYear > 2026) {
+                alert('Please enter a valid birth year');
+                return;
+            }
+
+            showStep('step-processing');
+            document.getElementById('processingText').textContent = 'Getting signed credential...';
+
+            try {
+                // 1. Issue (simulated ID authority)
+                const issueResp = await fetch(`${API}/api/issue`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ birth_year: birthYear })
+                });
+                const credential = await issueResp.json();
+
+                // 2. Generate ZK proof
+                document.getElementById('processingText').textContent = 'Generating ZK proof locally...';
+                const proveResp = await fetch(`${API}/api/prove`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        birth_year: birthYear,
+                        issuer_pubkey_hash: credential.issuer_pubkey_hash,
+                        issuer_signature: credential.issuer_signature,
+                        signature_randomness: credential.signature_randomness,
+                        threshold: threshold
+                    })
+                });
+                const proofResult = await proveResp.json();
+
+                // 3. Verify via zkVerify
+                document.getElementById('processingText').textContent = 'Submitting to zkVerify...';
+                const verifyResp = await fetch(`${API}/api/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        proof: proofResult.proof,
+                        public_signals: proofResult.public_signals,
+                        proof_id: proofResult.proof_id
+                    })
+                });
+                const verifyResult = await verifyResp.json();
+
+                // 4. Show result
+                showResult(verifyResult, proofResult, threshold);
+                loadStats();
+            } catch (err) {
+                document.getElementById('resultBadge').innerHTML =
+                    `<div class="badge badge-error">Error: ${err.message}</div>`;
+                showStep('step-result');
+            }
+        }
+
+        function showResult(verifyResult, proofResult, threshold) {
+            const badge = document.getElementById('resultBadge');
+            const details = document.getElementById('resultDetails');
+            const proofJson = document.getElementById('proofJson');
+
+            if (verifyResult.verified) {
+                badge.innerHTML = `<div class="badge badge-success">&#10003; Age verified — you're ${threshold}+</div>`;
+                details.innerHTML = `Verified via <strong>${verifyResult.verification_method}</strong>` +
+                    (verifyResult.zkverify_tx_hash ? `<br>zkVerify tx: <code>${verifyResult.zkverify_tx_hash.slice(0,20)}...</code>` : '');
+            } else {
+                badge.innerHTML = `<div class="badge badge-error">&#10007; Verification failed</div>`;
+                details.textContent = 'The proof could not be verified. You may not meet the age threshold.';
+            }
+
+            proofJson.textContent = JSON.stringify({
+                proof_id: proofResult.proof_id,
+                public_signals: proofResult.public_signals,
+                verification_method: verifyResult.verification_method,
+                verified: verifyResult.verified,
+            }, null, 2);
+
+            showStep('step-result');
+        }
+
+        function reset() {
+            document.getElementById('birthYear').value = '';
+            showStep('step-issue');
+        }
+
+        async function loadStats() {
+            try {
+                const resp = await fetch(`${API}/api/stats`);
+                const stats = await resp.json();
+                document.getElementById('statProofs').textContent = stats.total_proofs_generated;
+                document.getElementById('statVerified').textContent = stats.total_proofs_verified;
+                document.getElementById('stats').style.display = 'grid';
+            } catch (e) {}
+        }
+
+        loadStats();
+    </script>
+</body>
+</html>
