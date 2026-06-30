@@ -5,9 +5,8 @@
 /build/*.zkey
 /build/*.vkey
 /build/*.ptau
-/build/witness*.json
-/build/proof*.json
-/build/public*.json
+/build/*.wtns
+/build/*.json
 
 # Node
 node_modules/
