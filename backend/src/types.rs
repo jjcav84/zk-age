@@ -42,6 +42,10 @@ pub struct ProveResponse {
     pub public_signals: Vec<String>,
     /// Statement hash for zkVerify tracking.
     pub proof_id: String,
+    /// Proof generation latency in milliseconds.
+    pub proof_latency_ms: u64,
+    /// Attestation energy score (FMD physics model).
+    pub energy: crate::attestation_energy::ProofEnergyResult,
 }
 
 /// Request to verify a proof via zkVerify.
@@ -80,4 +84,8 @@ pub struct StatsResponse {
     pub unique_users: u64,
     /// Timestamp of last proof generation.
     pub last_proof_at: Option<String>,
+    /// Average proof energy score across all proofs (FMD physics model).
+    pub avg_energy: f64,
+    /// Total negentropy extracted across all proofs (bits).
+    pub total_negentropy_bits: f64,
 }

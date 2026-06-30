@@ -30,6 +30,7 @@ pub fn generate_proof(req: &ProveRequest) -> Result<ProveResponse> {
     let proof_id = Uuid::new_v4().to_string();
     let tmp_dir = std::env::temp_dir().join(format!("zk-age-{}", proof_id));
     std::fs::create_dir_all(&tmp_dir)?;
+    let start = std::time::Instant::now();
 
     let current_year = chrono::Utc::now().format("%Y").to_string().parse::<u64>()?;
 
@@ -96,10 +97,21 @@ pub fn generate_proof(req: &ProveRequest) -> Result<ProveResponse> {
     // Cleanup
     let _ = std::fs::remove_dir_all(&tmp_dir);
 
+    let proof_latency_ms = start.elapsed().as_millis() as u64;
+
+    // Compute attestation energy (FMD physics model)
+    let potential = crate::attestation_energy::ProofPotential {
+        proof_latency_ms,
+        ..Default::default()
+    };
+    let energy = potential.energy(req.threshold, 0.95);
+
     Ok(ProveResponse {
         proof,
         public_signals,
         proof_id,
+        proof_latency_ms,
+        energy,
     })
 }
 

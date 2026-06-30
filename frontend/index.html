@@ -174,7 +174,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .stats {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 12px;
             margin-top: 24px;
         }
@@ -192,6 +192,40 @@
             color: var(--muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+        .energy-panel {
+            margin-top: 20px;
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(168,85,247,0.05));
+            border: 1px solid rgba(99,102,241,0.2);
+            border-radius: 8px;
+            text-align: left;
+        }
+        .energy-panel-title {
+            font-size: 12px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .energy-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .energy-row span:first-child { color: var(--muted); }
+        .energy-row span:last-child { font-family: 'SF Mono', monospace; font-weight: 600; }
+        .energy-formula {
+            margin-top: 10px;
+            padding: 8px;
+            background: var(--bg);
+            border-radius: 6px;
+            font-size: 11px;
+            color: var(--muted);
+            font-family: 'SF Mono', monospace;
+            text-align: center;
         }
     </style>
 </head>
@@ -252,12 +286,24 @@
             <div class="stats" id="stats" style="display:none;">
                 <div class="stat">
                     <div class="stat-value" id="statProofs">0</div>
-                    <div class="stat-label">Proofs Generated</div>
+                    <div class="stat-label">Proofs</div>
                 </div>
                 <div class="stat">
                     <div class="stat-value" id="statVerified">0</div>
-                    <div class="stat-label">Proofs Verified</div>
+                    <div class="stat-label">Verified</div>
                 </div>
+                <div class="stat">
+                    <div class="stat-value" id="statEnergy">0.0</div>
+                    <div class="stat-label">Avg Energy</div>
+                </div>
+            </div>
+            <div class="energy-panel" id="energyPanel" style="display:none;">
+                <div class="energy-panel-title">FMD Physics Energy Score</div>
+                <div class="energy-row"><span>Negentropy extracted</span><span id="energyNegentropy">0.0 bits</span></div>
+                <div class="energy-row"><span>Committor (P(valid))</span><span id="energyCommittor">0.0%</span></div>
+                <div class="energy-row"><span>Depth ratio</span><span id="energyDepth">0.0</span></div>
+                <div class="energy-row"><span>Latency decay</span><span id="energyLatency">0.0</span></div>
+                <div class="energy-formula">energy = confidence × √(depth × timing) × latency_decay × (1 − cost)</div>
             </div>
         </div>
     </div>
@@ -348,7 +394,18 @@
                 public_signals: proofResult.public_signals,
                 verification_method: verifyResult.verification_method,
                 verified: verifyResult.verified,
+                energy: proofResult.energy,
             }, null, 2);
+
+            // Show energy panel
+            if (proofResult.energy) {
+                const e = proofResult.energy;
+                document.getElementById('energyPanel').style.display = 'block';
+                document.getElementById('energyNegentropy').textContent = e.negentropy_bits.toFixed(1) + ' bits';
+                document.getElementById('energyCommittor').textContent = (e.committor * 100).toFixed(1) + '%';
+                document.getElementById('energyDepth').textContent = e.depth_ratio.toFixed(1);
+                document.getElementById('energyLatency').textContent = e.latency_decay.toFixed(3);
+            }
 
             showStep('step-result');
         }
@@ -364,6 +421,7 @@
                 const stats = await resp.json();
                 document.getElementById('statProofs').textContent = stats.total_proofs_generated;
                 document.getElementById('statVerified').textContent = stats.total_proofs_verified;
+                document.getElementById('statEnergy').textContent = stats.avg_energy.toFixed(1);
                 document.getElementById('stats').style.display = 'grid';
             } catch (e) {}
         }

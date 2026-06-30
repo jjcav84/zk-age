@@ -1,8 +1,8 @@
 # zk-age
 
-Privacy-preserving age verification for web2 applications, powered by zero-knowledge proofs and [zkVerify](https://zkverify.io).
+Privacy-preserving age verification for web2 applications, powered by zero-knowledge proofs, [zkVerify](https://zkverify.io), and an **FMD physics energy model** adapted from the [orkid](https://github.com/jjcav84/orkid) MEV detection engine.
 
-> Prove you're 18+ without revealing your birthdate.
+> Prove you're 18+ without revealing your birthdate. Every proof is scored by its thermodynamic energy — the negentropy extracted from private data.
 
 ## What it does
 
@@ -14,13 +14,100 @@ zk-age lets any web2 application verify a user's age without collecting or stori
 
 Every age-gated website today collects birthdates — creating massive PII liability, GDPR exposure, and data breach risk. zk-age eliminates the need to store this data entirely. The proof is the verification.
 
+## The thermodynamic framing
+
+zk-age applies the **Financial Molecular Dynamics (FMD)** physics framework from the orkid MEV detection engine to score ZK proofs by quality. This is not metaphor — the mathematics of statistical mechanics, information theory, and zero-knowledge proofs are fundamentally connected.
+
+### Negentropy = Information = Order
+
+From Brillouin's negentropy principle (1953) and the orkid blog post ["Negentropy = Information: A Generalized Mathematical Framework"](https://github.com/jjcav84/orkid/blob/main/blog/2025-11-06-negentropy-information-generalized-framework.md):
+
+> **Negentropy = H_max − H_actual = D_KL(p_informed || p_uninformed)**
+
+A birthdate is a **high-entropy state** — without verification, anyone could claim any age. A ZK proof is a **negentropy extraction**: it converts private, chaotic data into structured, verifiable order (the boolean "age >= threshold") without revealing the underlying value.
+
+For the zk-age circuit (17 constraints, threshold=18):
+
+```
+N = constraint_count × log₂(threshold) = 17 × log₂(18) ≈ 70.9 bits
+```
+
+This is the Shannon entropy reduction — the amount of uncertainty about the user's age eliminated by the proof. Each constraint in the circuit contributes ~1 bit of negentropy. The verifier learns the user is above the threshold without learning the exact age.
+
+### Landauer's principle
+
+From Landauer (1961) and the orkid blog post ["Blockchain Thermodynamics: How Negentropy Explains MEV"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-blockchain-thermodynamics-negentropy-mev.md):
+
+> **E ≥ k_B × T × ln(2) per bit erased**
+
+Proof generation pays the thermodynamic cost of extracting negentropy. The compute energy spent generating the Groth16 proof is the Landauer cost of creating 70.9 bits of order from private chaos. The verifier receives this order without paying the cost.
+
+### The MEV closure analogy
+
+From the orkid blog post ["A Formal Mathematical Model of Blockchain Negentropy and MEV Dynamics"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-formal-negentropy-model-mev-dynamics.md):
+
+> **dM/dt = a·δ + b·H_M − c·χ(I)·M**
+
+In MEV: information closes arbitrage opportunities. In zk-age: the ZK proof "closes" the uncertainty about the user's age. The proof is the information injection that collapses the entropy of the unverifiable claim into a deterministic boolean.
+
+## The energy model
+
+The proof energy model is adapted from the **route energy formula** in the orkid FMD physics engine (`fmd-physics/src/route_energy.rs`):
+
+### FMD route energy (orkid)
+
+```
+energy = net_bps × √(depth_ratio × timing_factor) × latency_decay × (1 − gas_penalty)
+```
+
+This scores arbitrage paths by net output, liquidity depth, timing, and gas cost. Higher energy = more profitable route.
+
+### Age proof energy (zk-age)
+
+```
+energy = confidence × √(depth_ratio × timing_factor) × latency_decay × (1 − cost_penalty)
+```
+
+This scores ZK proofs by issuer confidence, threshold strictness, recency, proof speed, and verification cost. Higher energy = higher quality proof.
+
+| Factor | FMD (MEV) | zk-age (ZK proofs) |
+|--------|-----------|---------------------|
+| **Confidence** | Pool TVL (liquidity depth) | Issuer trust score (credential strength) |
+| **Depth ratio** | Reserve ratio / trade size | Confidence / log₁₀(threshold) |
+| **Timing factor** | 1/√(hops) | exp(−age / half_life) |
+| **Latency decay** | (1 − 0.001 × hops × latency) | 1 / (1 + total_latency × 0.0001) |
+| **Cost penalty** | Gas units × gas cost | zkVerify submission cost |
+
+### Committor function
+
+Adapted from the TPS (Transition Path Sampling) committor in the FMD engine, which predicts the probability of reaching a profitable state:
+
+```
+committor = (depth_ratio / (1 + depth_ratio)) × timing_factor × (1 − cost_penalty × 0.5)
+```
+
+This estimates the probability that the proof is valid and uncontested — a "rare event" prediction for proof quality. A fresh proof from a trusted issuer with a high threshold yields a committor near 1.0.
+
+### Example
+
+For a proof of age >= 18, issued by a government ID (trust=0.95), generated in 572ms:
+
+| Metric | Value |
+|--------|-------|
+| Energy | 779.51 |
+| Negentropy | 70.89 bits |
+| Committor | 98.7% |
+| Depth ratio | 75.68 |
+| Latency decay | 0.943 |
+| Cost penalty | 0.00001 |
+
 ## How it works
 
 ```
 ┌──────────┐     ┌──────────────────┐     ┌─────────────┐     ┌───────────┐
 │  User    │────▶│  Rust Backend    │────▶│  snarkjs    │────▶│  zkVerify │
 │  (web)   │     │  (axum server)   │     │  (Groth16)  │     │  (Kurier) │
-│          │◀────│                  │◀────│  proof gen  │◀────│  verify   │
+│          │◀────│  + FMD energy    │◀────│  proof gen  │◀────│  verify   │
 └──────────┘     └──────────────────┘     └─────────────┘     └───────────┘
                          │
                          ▼
@@ -31,16 +118,17 @@ Every age-gated website today collects birthdates — creating massive PII liabi
                  └───────────────┘
 ```
 
-1. **Issue**: An ID authority (government, digital ID provider) signs a commitment to the user's birth year. In production, this would be Polygon ID, a government digital ID API, or an OIDC provider with ZK support.
+1. **Issue**: An ID authority (government, digital ID provider) signs a commitment to the user's birth year.
 
-2. **Prove**: The user's browser requests a proof from the Rust backend. The backend generates a Groth16 proof using snarkjs + the compiled circom circuit. The proof demonstrates:
+2. **Prove**: The backend generates a Groth16 proof using snarkjs + the compiled circom circuit. The proof demonstrates:
    - The user possesses a valid signed birthdate commitment
    - `current_year - birth_year >= threshold`
    - Without revealing `birth_year`
+   - The FMD energy model scores the proof by quality (negentropy, committor, latency)
 
 3. **Verify**: The proof is submitted to zkVerify via the Kurier REST API for on-chain verification. zkVerify returns a transaction hash and statement hash, providing a permanent, auditable verification record.
 
-4. **Result**: The web frontend displays "Age verified — you're 18+" with zero knowledge of the user's actual age.
+4. **Result**: The frontend displays "Age verified — you're 18+" with the energy score and negentropy extracted.
 
 ## The circuit
 
@@ -72,6 +160,7 @@ The demo uses a simplified algebraic signature (`sig = birth_year + pubkey * ran
 | Proof system | Groth16 (snarkjs) | Smallest proofs (~200 bytes), fastest verification |
 | Curve | BN128 / BN254 | Supported by zkVerify, EVM-compatible |
 | Backend | Rust (axum, tokio) | Performance, safety, production-grade |
+| Energy model | FMD physics (adapted from orkid) | Thermodynamic proof quality scoring |
 | zkVerify integration | Kurier REST API | No blockchain knowledge required for web2 teams |
 | Frontend | Vanilla HTML/JS | Zero dependencies, instant load, works everywhere |
 
@@ -140,9 +229,41 @@ Open http://localhost:3000 in your browser. Enter a birth year, select a thresho
 |----------|--------|-------------|
 | `/api/health` | GET | Health check |
 | `/api/issue` | POST | Issue a signed birthdate credential (simulated ID authority) |
-| `/api/prove` | POST | Generate a Groth16 ZK proof of age |
+| `/api/prove` | POST | Generate a Groth16 ZK proof of age + compute FMD energy score |
 | `/api/verify` | POST | Verify a proof via zkVerify (or local fallback) |
-| `/api/stats` | GET | Metrics for Thrive grant milestone tracking |
+| `/api/stats` | GET | Metrics for Thrive grant milestone tracking + energy stats |
+| `/api/energy/:id` | GET | FMD physics energy model details and references |
+
+## Build & test
+
+```bash
+cargo build
+cargo test --bin zk-age-backend
+```
+
+## Project structure
+
+```
+zk-age/
+├── circuit/
+│   └── age.circom              # Age verification ZK circuit (17 constraints)
+├── build/                      # Compiled circuit artifacts (gitignored)
+├── backend/
+│   ├── Cargo.toml
+│   └── src/
+│       ├── main.rs             # axum server entry
+│       ├── routes.rs           # HTTP API + energy endpoint
+│       ├── types.rs            # API types (with energy fields)
+│       ├── state.rs            # Metrics tracking (with energy sum)
+│       ├── issuer.rs           # Credential issuance (simulated authority)
+│       ├── prover.rs           # snarkjs proof generation + energy computation
+│       ├── zkverify.rs         # zkVerify Kurier REST integration
+│       └── attestation_energy.rs  # FMD physics energy model
+├── frontend/
+│   └── index.html              # Zero-dependency web UI with energy display
+├── Cargo.toml                  # Workspace
+└── README.md
+```
 
 ## Thrive zkVerify Web2 Program — Grant Plan
 
@@ -163,7 +284,7 @@ Revenue is sustainable beyond the grant period through SaaS subscriptions. The m
 
 ### Milestone roadmap
 
-**Application (10%)**: This repo — working circuit, Rust backend, zkVerify integration plan, frontend.
+**Application (10%)**: This repo — working circuit, Rust backend, zkVerify integration plan, FMD energy model, frontend.
 
 **Milestone 1 — Live Deployment (10%, 45 days)**:
 - Deploy backend to production (Railway/Fly.io)
@@ -181,26 +302,22 @@ Revenue is sustainable beyond the grant period through SaaS subscriptions. The m
 - Target: 250,000+ ZK proofs sent to zkVerify
 - Onboard 50+ websites
 - Launch hosted verification widget (one-line script tag)
-- Implement Poseidon-based signatures (production-grade crypto)
-- Add age range proofs (e.g., "18-25", "25-35") for analytics
+- Implement Poseidon signatures for production-grade security
 
-### Performance tracking
+## References
 
-The `/api/stats` endpoint tracks all metrics required by the Thrive program:
-- `total_proofs_generated` — proofs created
-- `total_proofs_verified` — proofs verified
-- `total_zkverify_submissions` — proofs submitted to zkVerify
-- `unique_users` — distinct users
-- `last_proof_at` — timestamp of last proof
+The FMD physics energy model is adapted from the orkid workspace:
 
-## Use cases
+- **Route energy formula**: [`orkid/fmd-physics/src/route_energy.rs`](https://github.com/jjcav84/orkid/blob/main/fmd-physics/src/route_energy.rs)
+- **TPS committor function**: [`orkid/fmd-physics/src/tps.rs`](https://github.com/jjcav84/orkid/blob/main/fmd-physics/src/tps.rs)
+- **Profit potential energy**: [`orkid/fmd-physics/src/profit_potential.rs`](https://github.com/jjcav84/orkid/blob/main/fmd-physics/src/profit_potential.rs)
 
-- **Age-gated e-commerce**: Alcohol, cannabis, vape, gambling sites
-- **Social media**: COPPA compliance (13+), platform age requirements
-- **Content platforms**: R-rated content, mature content filters
-- **Financial services**: KYC age verification without PII storage
-- **Healthcare**: Age-based service eligibility
-- **Gaming**: ESRB rating enforcement
+Blog posts establishing the thermodynamic framework:
+
+- ["Blockchain Thermodynamics: How Negentropy Explains MEV"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-blockchain-thermodynamics-negentropy-mev.md) — Landauer's principle, Shannon entropy, negentropy extraction
+- ["Negentropy = Information: A Generalized Mathematical Framework"](https://github.com/jjcav84/orkid/blob/main/blog/2025-11-06-negentropy-information-generalized-framework.md) — D_KL, Brillouin's negentropy principle
+- ["A Formal Mathematical Model of Blockchain Negentropy and MEV Dynamics"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-formal-negentropy-model-mev-dynamics.md) — MEV closure equation, graph diffusion
+- ["Complex Microstructure and Route Scoring in DeFi"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-complex-microstructure-route-scoring.md) — Complex microstructure factor, phase conjugation, time-normalized scoring
 
 ## License
 

@@ -10,6 +10,7 @@
 //! The frontend never touches blockchain. Users just click "I'm 18+" and get
 //! a verified result. The Rust backend orchestrates the ZK workflow.
 
+pub mod attestation_energy;
 pub mod issuer;
 pub mod prover;
 pub mod zkverify;

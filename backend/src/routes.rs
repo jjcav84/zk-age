@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use axum::{routing::{get, post}, Json, Router};
+use axum::{routing::{get, post}, Json, Router, extract::Path};
 
 use crate::state::AppState;
 use crate::types::*;
@@ -14,6 +14,7 @@ pub fn router(state: Arc<AppState>) -> Router {
         .route("/api/prove", post(prove))
         .route("/api/verify", post(verify))
         .route("/api/stats", get(stats))
+        .route("/api/energy/:proof_id", get(energy))
         .fallback_service(tower_http::services::ServeFile::new("frontend/index.html"))
         .with_state(state)
 }
@@ -40,14 +41,17 @@ async fn prove(
     let result = crate::prover::generate_proof(&req)
         .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    // Track metrics
+    // Track metrics with energy score
     let user_id = format!("user-{}", req.birth_year); // simplified
-    state.record_proof(&user_id);
+    state.record_proof(&user_id, result.energy.energy, result.energy.negentropy_bits);
 
     tracing::info!(
-        "proof generated: id={}, threshold={}",
+        "proof generated: id={}, threshold={}, energy={:.2}, negentropy={:.1} bits, latency={}ms",
         result.proof_id,
-        req.threshold
+        req.threshold,
+        result.energy.energy,
+        result.energy.negentropy_bits,
+        result.proof_latency_ms,
     );
 
     Ok(Json(result))
@@ -83,7 +87,7 @@ async fn verify(
 async fn stats(
     axum::extract::State(state): axum::extract::State<Arc<AppState>>,
 ) -> Json<StatsResponse> {
-    let (generated, verified, zkverify, users, last) = state.stats();
+    let (generated, verified, zkverify, users, last, avg_energy, total_negentropy) = state.stats();
 
     Json(StatsResponse {
         total_proofs_generated: generated,
@@ -91,5 +95,29 @@ async fn stats(
         total_zkverify_submissions: zkverify,
         unique_users: users,
         last_proof_at: last,
+        avg_energy,
+        total_negentropy_bits: total_negentropy,
     })
+}
+
+async fn energy(
+    axum::extract::State(state): axum::extract::State<Arc<AppState>>,
+    Path(_proof_id): Path<String>,
+) -> Json<serde_json::Value> {
+    let (_, _, _, _, _, avg_energy, total_negentropy) = state.stats();
+    Json(serde_json::json!({
+        "avg_energy": avg_energy,
+        "total_negentropy_bits": total_negentropy,
+        "model": "FMD Route Energy (adapted from orkid fmd-physics)",
+        "formula": "energy = confidence * sqrt(depth_ratio * timing_factor) * latency_decay * (1 - cost_penalty)",
+        "negentropy_formula": "N = constraint_count * log2(threshold)",
+        "constraint_count": 17,
+        "origin": "orkid fmd-physics/src/route_energy.rs",
+        "references": {
+            "route_energy": "https://github.com/jjcav84/orkid/blob/main/fmd-physics/src/route_energy.rs",
+            "blog_thermodynamics": "Blockchain Thermodynamics: How Negentropy Explains MEV",
+            "blog_negentropy": "Negentropy = Information: A Generalized Mathematical Framework",
+            "blog_route_scoring": "Complex Microstructure and Route Scoring in DeFi"
+        }
+    }))
 }
