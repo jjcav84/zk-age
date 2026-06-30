@@ -1,5 +1,7 @@
 # zk-age
 
+**By [Orkid Labs](https://www.orkidlabs.com)** — privacy-first crypto engineering
+
 Privacy-preserving age verification for web2 applications, powered by zero-knowledge proofs, [zkVerify](https://zkverify.io), and an **FMD physics energy model** adapted from the [orkid](https://github.com/jjcav84/orkid) MEV detection engine.
 
 > Prove you're 18+ without revealing your birthdate. Every proof is scored by its thermodynamic energy — the negentropy extracted from private data.
@@ -318,6 +320,12 @@ Blog posts establishing the thermodynamic framework:
 - ["Negentropy = Information: A Generalized Mathematical Framework"](https://github.com/jjcav84/orkid/blob/main/blog/2025-11-06-negentropy-information-generalized-framework.md) — D_KL, Brillouin's negentropy principle
 - ["A Formal Mathematical Model of Blockchain Negentropy and MEV Dynamics"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-formal-negentropy-model-mev-dynamics.md) — MEV closure equation, graph diffusion
 - ["Complex Microstructure and Route Scoring in DeFi"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-complex-microstructure-route-scoring.md) — Complex microstructure factor, phase conjugation, time-normalized scoring
+
+## About
+
+Built by [Orkid Labs](https://www.orkidlabs.com) — a privacy-first crypto
+engineering lab building thermodynamic infrastructure for decentralized
+systems. See our other work at [orkidlabs.com](https://www.orkidlabs.com).
 
 ## License
 
