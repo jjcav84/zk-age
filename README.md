@@ -8,6 +8,13 @@
 
 Privacy-preserving age verification for web2 applications, powered by zero-knowledge proofs, [zkVerify](https://zkverify.io), and an **FMD physics energy model** adapted from the [orkid](https://github.com/jjcav84/orkid) MEV detection engine.
 
+> **Note:** The orkid repository is private. Access can be provided to
+> Thrive Protocol reviewers and other appropriate cases on request —
+> contact [Orkid Labs](https://www.orkidlabs.com). The theoretical
+> foundation is published as a preprint:
+> ["Negative EV per Unit Time as Blockchain Inefficiency"](https://www.researchgate.net/publication/399474539_Negative_EV_per_Unit_Time_as_Blockchain_Inefficiency)
+> — [Jacob Cavazos, ResearchGate](https://www.researchgate.net/profile/Jacob-Cavazos).
+
 > Prove you're 18+ without revealing your birthdate. Every proof is scored by its thermodynamic energy — the negentropy extracted from private data.
 
 ## What it does
@@ -26,7 +33,7 @@ zk-age applies the **Financial Molecular Dynamics (FMD)** physics framework from
 
 ### Negentropy = Information = Order
 
-From Brillouin's negentropy principle (1953) and the orkid blog post ["Negentropy = Information: A Generalized Mathematical Framework"](https://github.com/jjcav84/orkid/blob/main/blog/2025-11-06-negentropy-information-generalized-framework.md):
+From Brillouin's negentropy principle (1953) and the orkid blog post ["Negentropy = Information: A Generalized Mathematical Framework"](https://www.orkidlabs.com/blog/negentropy-information-generalized-framework/):
 
 > **Negentropy = H_max − H_actual = D_KL(p_informed || p_uninformed)**
 
@@ -42,7 +49,7 @@ This is the Shannon entropy reduction — the amount of uncertainty about the us
 
 ### Landauer's principle
 
-From Landauer (1961) and the orkid blog post ["Blockchain Thermodynamics: How Negentropy Explains MEV"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-blockchain-thermodynamics-negentropy-mev.md):
+From Landauer (1961) and the orkid blog post ["Blockchain Thermodynamics: How Negentropy Explains MEV, Consensus, and Arbitrage"](https://www.orkidlabs.com/blog/blockchain-thermodynamics-negentropy-mev-physics/):
 
 > **E ≥ k_B × T × ln(2) per bit erased**
 
@@ -50,7 +57,7 @@ Proof generation pays the thermodynamic cost of extracting negentropy. The compu
 
 ### The MEV closure analogy
 
-From the orkid blog post ["A Formal Mathematical Model of Blockchain Negentropy and MEV Dynamics"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-formal-negentropy-model-mev-dynamics.md):
+From the orkid blog post ["A Formal Mathematical Model of Blockchain Negentropy and MEV Dynamics"](https://www.orkidlabs.com/blog/formal-negentropy-model-mev-dynamics-graph-diffusion/):
 
 > **dM/dt = a·δ + b·H_M − c·χ(I)·M**
 
@@ -101,7 +108,7 @@ For a proof of age >= 18, issued by a government ID (trust=0.95), generated in 5
 | Metric | Value |
 |--------|-------|
 | Energy | 779.51 |
-| Negentropy | 70.89 bits |
+| Negentropy | 70.9 bits |
 | Committor | 98.7% |
 | Depth ratio | 75.68 |
 | Latency decay | 0.943 |
@@ -271,11 +278,11 @@ zk-age/
 └── README.md
 ```
 
-## Thrive zkVerify Web2 Program — Grant Plan
+## Thrive zkVerify Web2 Program (#44) — Grant Plan
 
 ### Ecosystem value proposition
 
-zk-age drives **proof verification volume** to zkVerify. Every age-gated page view generates a proof and a zkVerify verification. A single e-commerce site with 100K daily age-gated page views generates 3M proofs/month — far exceeding the Milestone 3 target of 250K proofs.
+zk-age drives **proof verification volume** to zkVerify. Every age-gated page view generates a proof and a zkVerify verification. A single e-commerce site with 100K daily age-gated page views generates 3M proofs/month — far exceeding the Milestone 3: Scale target of 250,000+ ZK Proofs sent to zkVerify.
 
 ### Revenue model
 
@@ -290,40 +297,51 @@ Revenue is sustainable beyond the grant period through SaaS subscriptions. The m
 
 ### Milestone roadmap
 
-**Application (10%)**: This repo — working circuit, Rust backend, zkVerify integration plan, FMD energy model, frontend.
+Progressive achievement over 150 days, following Thrive zkVerify Web2 Program (#44) milestone structure.
 
-**Milestone 1 — Live Deployment (10%, 45 days)**:
-- Deploy backend to production (Railway/Fly.io)
-- Integrate real zkVerify Kurier API key
-- Publish integration documentation
-- Beta test with 3 age-gated websites
+**KYC Verification**: Mandatory identity verification for compliance.
 
-**Milestone 2 — Initial Traction (30%, 90 days)**:
-- Target: 25,000+ ZK proofs sent to zkVerify
-- Onboard 10+ websites via SDK/iframe embed
-- Launch developer documentation and integration guide
-- Implement proof batching for efficiency
+**Sign Funding Agreement**: Review and execute the funding program contract.
 
-**Milestone 3 — Scale (50%, 150 days)**:
-- Target: 250,000+ ZK proofs sent to zkVerify
-- Onboard 50+ websites
-- Launch hosted verification widget (one-line script tag)
-- Implement Poseidon signatures for production-grade security
+**Acceptance Payment (10%, 10 days to complete — up to $4,500 USDC)**:
+- Application approved — this repo: working circuit, Rust backend, zkVerify integration plan, FMD energy model, frontend
+
+**Milestone 1: Live Deployment (10%, 55 days to complete — up to $4,500 USDC)**:
+- Production deployment with fully functional zkVerify integration and proof verification
+- Demo video showing user interaction and proof verification (1-5 minutes)
+- Beta testing with proof verification validation
+- Published documentation covering zkVerify integration and proof verification processes
+
+**Deliverables:**
+- Production Deployment Evidence: Application URL, zkVerify explorer links showing proof submissions, or API endpoints demonstrating verification
+- Demo Video: 1-5 minute video demonstrating the application with zkVerify proof verification operational, with narration or subtitles
+- Beta Testing Results: Testing reports, user feedback, or verification logs demonstrating successful proof generation and verification
+- Technical Documentation: Published documentation covering zkVerify integration and proof verification processes
+
+**Milestone 2: Initial Traction (30%, 100 days to complete — up to $13,500 USDC)**:
+- Early traction metrics, choose one of the following:
+  - Transaction Volume: 25,000+ ZK Proofs sent to zkVerify
+  - Unique Users: 250+ unique addresses interacting with zkVerify integration
+
+**Milestone 3: Scale (50%, 160 days to complete — up to $22,500 USDC)**:
+- Choose one of the following:
+  - Transaction Volume: 250,000+ ZK Proofs sent to zkVerify
+  - Unique Users: 2,500+ unique addresses interacting with zkVerify integration
 
 ## References
 
-The FMD physics energy model is adapted from the orkid workspace:
+The FMD physics energy model is adapted from the orkid workspace (private repo — access available for reviewers on request). The theoretical foundation is published as a preprint: ["Negative EV per Unit Time as Blockchain Inefficiency"](https://www.researchgate.net/publication/399474539_Negative_EV_per_Unit_Time_as_Blockchain_Inefficiency) by [Jacob Cavazos](https://www.researchgate.net/profile/Jacob-Cavazos).
 
-- **Route energy formula**: [`orkid/fmd-physics/src/route_energy.rs`](https://github.com/jjcav84/orkid/blob/main/fmd-physics/src/route_energy.rs)
-- **TPS committor function**: [`orkid/fmd-physics/src/tps.rs`](https://github.com/jjcav84/orkid/blob/main/fmd-physics/src/tps.rs)
-- **Profit potential energy**: [`orkid/fmd-physics/src/profit_potential.rs`](https://github.com/jjcav84/orkid/blob/main/fmd-physics/src/profit_potential.rs)
+- **Route energy formula**: `orkid/fmd-physics/src/route_energy.rs`
+- **TPS committor function**: `orkid/fmd-physics/src/tps.rs`
+- **Profit potential energy**: `orkid/fmd-physics/src/profit_potential.rs`
 
-Blog posts establishing the thermodynamic framework:
+Blog posts establishing the thermodynamic framework (publicly available at [orkidlabs.com/blog](https://www.orkidlabs.com/blog/)):
 
-- ["Blockchain Thermodynamics: How Negentropy Explains MEV"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-blockchain-thermodynamics-negentropy-mev.md) — Landauer's principle, Shannon entropy, negentropy extraction
-- ["Negentropy = Information: A Generalized Mathematical Framework"](https://github.com/jjcav84/orkid/blob/main/blog/2025-11-06-negentropy-information-generalized-framework.md) — D_KL, Brillouin's negentropy principle
-- ["A Formal Mathematical Model of Blockchain Negentropy and MEV Dynamics"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-formal-negentropy-model-mev-dynamics.md) — MEV closure equation, graph diffusion
-- ["Complex Microstructure and Route Scoring in DeFi"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-complex-microstructure-route-scoring.md) — Complex microstructure factor, phase conjugation, time-normalized scoring
+- ["Blockchain Thermodynamics: How Negentropy Explains MEV, Consensus, and Arbitrage"](https://www.orkidlabs.com/blog/blockchain-thermodynamics-negentropy-mev-physics/) — Landauer's principle, Shannon entropy, negentropy extraction
+- ["Negentropy = Information: A Generalized Mathematical Framework"](https://www.orkidlabs.com/blog/negentropy-information-generalized-framework/) — D_KL, Brillouin's negentropy principle
+- ["A Formal Mathematical Model of Blockchain Negentropy and MEV Dynamics"](https://www.orkidlabs.com/blog/formal-negentropy-model-mev-dynamics-graph-diffusion/) — MEV closure equation, graph diffusion
+- ["Complex Microstructure and Route Scoring in DeFi: Beyond Simple EV"](https://www.orkidlabs.com/blog/complex-microstructure-route-scoring-defi/) — Complex microstructure factor, phase conjugation, time-normalized scoring
 
 ## About
 
